@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+
+.swal2-popup {
+    border-radius: 2rem;
+}
+
+.swal2-title {
+    font-family: 'Serif';
+    color: #002a33;
+}
+
+.swal2-html-container {
+    color: #4b5563;
+    font-family: serif;
+    font-size: 20px;
+}
+
+.swal2-confirm {
+    background-color: #003b46;
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+}
+
+.swal2-confirm:hover {
+    background-color: #002a33;
+}
+
+.swal2-cancel {
+    background-color: #e5e7eb;
+    color: #374151;
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+}
