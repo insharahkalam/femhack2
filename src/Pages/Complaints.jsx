@@ -159,7 +159,7 @@ const Complaints = () => {
 
     return (
         <>
-            <Navbar name="Complaints" btn = 'Back To Home'/>
+            <Navbar name="Complaints"  showBackToHome/>
             <div className="min-h-screen flex flex-col items-center justify-start bg-gray-50 p-5 lg:p-10 space-y-10">
 
                 {/* Submit/Edit Complaint Form */}

@@ -1,14 +1,14 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaLongArrowAltLeft } from "react-icons/fa";
 import { client } from "../Config/supabase";
 import { LuLogOut } from "react-icons/lu";
 import Swal from "sweetalert2";
 import { useState } from "react";
 
-const Navbar = ({ name, showLogout = false }) => {
-    const location = useLocation();
+const Navbar = ({ showLost, showBackToHome, back, name, showLogout = false }) => {
+
     const [open, setOpen] = useState(true)
-    const showBackToHome = location.pathname !== "/home" && !showLogout;
+
 
     const navigate = useNavigate();
     const handleLogout = async () => {
@@ -38,15 +38,39 @@ const Navbar = ({ name, showLogout = false }) => {
                 {name}
             </h2>
 
-            {showBackToHome && (
-                <Link to={'/home'}>
-                    <button
+            <div className="flex items-center gap-4">
+                {showBackToHome && (
+                    <Link to={'/home'}>
+                        <button
 
-                        className="flex bg-[#003b46] text-white px-6 py-2.5 rounded-lg font-bold hover:bg-[#002a33] transition duration-500 hover:scale-105 items-center gap-2"
-                    >
-                        <FaLongArrowAltLeft className="mt-0.5" />  Back To Home
-                    </button></Link>
-            )}
+                            className="flex bg-[#003b46] text-white px-6 py-2.5 rounded-lg font-bold hover:bg-[#002a33] transition duration-500 hover:scale-105 items-center gap-2"
+                        >
+                            <FaLongArrowAltLeft className="mt-0.5" />  Back To Home
+                        </button></Link>
+                )}
+
+
+                {back && (
+                    <Link to={'/lostFounud'}>
+                        <button
+
+                            className="flex bg-[#003b46] text-white px-6 py-2.5 rounded-lg font-bold hover:bg-[#002a33] transition duration-500 hover:scale-105 items-center gap-2"
+                        >
+                            <FaLongArrowAltLeft className="mt-0.5" />  Back
+                        </button></Link>
+                )}
+
+                {showLost && (
+                    <Link to={'/LostFound'}>
+                        <button
+
+                            className="flex bg-[#003b46] text-white px-6 py-2.5 rounded-lg font-bold hover:bg-[#002a33] transition duration-500 hover:scale-105 items-center gap-2"
+                        >
+                            View Lost & Found
+                        </button></Link>
+                )}
+            </div>
+
 
             {showLogout && (
                 <button

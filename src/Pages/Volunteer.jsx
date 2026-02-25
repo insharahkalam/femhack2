@@ -146,7 +146,7 @@ const Volunteer = () => {
 
   return (
     <>
-      <Navbar name="Volunteer" />
+      <Navbar name="Volunteer" showBackToHome />
       <div className="min-h-screen m-5 lg:m-0 flex flex-col items-center bg-gray-50 space-y-10">
 
         {/* Registration / Edit Form */}

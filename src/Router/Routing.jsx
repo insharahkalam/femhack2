@@ -10,6 +10,7 @@ import Volunteer from "../Pages/Volunteer"
 import ProtectedRoute from "../Components/ProtectedRoute"
 import AdminRoute from "../Components/AdminRoute";
 import Home from "../Pages/Home"
+import AllLostFoundItems from "../Pages/AllLostFoundItems"
 
 const Routing = () => {
     return (
@@ -23,6 +24,7 @@ const Routing = () => {
                     <Route path="/lostFounud" element={<Lost_Found />} />
                     <Route path="/complaints" element={<Complaints />} />
                     <Route path="/volunteer" element={<Volunteer />} />
+                    <Route path="/lostFound" element={<AllLostFoundItems />} />
                     <Route path="/oauth-callback" element={<OAuthCallback />} />
                     <Route path="*" element={<ErrorPage />} />
 
