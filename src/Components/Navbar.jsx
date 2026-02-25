@@ -5,7 +5,8 @@ import { LuLogOut } from "react-icons/lu";
 import Swal from "sweetalert2";
 import { useState } from "react";
 
-const Navbar = ({ showLost, showBackToHome, back, name, showLogout = false }) => {
+
+const Navbar = ({ showLost, showBackToHome, search, setSearch, back, inputt, name, showLogout = false }) => {
 
     const [open, setOpen] = useState(true)
 
@@ -49,16 +50,21 @@ const Navbar = ({ showLost, showBackToHome, back, name, showLogout = false }) =>
                         </button></Link>
                 )}
 
+                <div className="flex items-center gap-4">
+                    {inputt && (
+                        <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search items by title..." className="border border-[#002a33] px-5 py-2.5 rounded-full w-100" />
+                    )}
 
-                {back && (
-                    <Link to={'/lostFounud'}>
-                        <button
+                    {back && (
+                        <Link to={'/lostFounud'}>
+                            <button
 
-                            className="flex bg-[#003b46] text-white px-6 py-2.5 rounded-lg font-bold hover:bg-[#002a33] transition duration-500 hover:scale-105 items-center gap-2"
-                        >
-                            <FaLongArrowAltLeft className="mt-0.5" />  Back
-                        </button></Link>
-                )}
+                                className="flex bg-[#003b46] text-white px-6 py-2.5 rounded-lg font-bold hover:bg-[#002a33] transition duration-500 hover:scale-105 items-center gap-2"
+                            >
+                                <FaLongArrowAltLeft className="mt-0.5" />  Back
+                            </button></Link>
+                    )}
+                </div>
 
                 {showLost && (
                     <Link to={'/LostFound'}>
@@ -81,6 +87,7 @@ const Navbar = ({ showLost, showBackToHome, back, name, showLogout = false }) =>
                 </button>
 
             )}
+
 
         </nav>
     );
