@@ -307,7 +307,7 @@ const Complaints = () => {
                                             <button className="border px-3  text-[10px] md:text-sm py-0.5 transition duration-500 hover:scale-105 text-blue-500 rounded cursor-pointer ">
                                                 {c.campus}</button>
                                         </td>
-                                        <td className="p-3 space-x-1 space-y-1">
+                                        <td className="p-3 truncate space-x-1 space-y-1">
                                             <button
                                                 onClick={() => handleEdit(c)}
                                                 className=" text-blue-500 text-lg px-2 py-1 duration-500 hover:scale-105 rounded-sm border border-blue-600 transition"
