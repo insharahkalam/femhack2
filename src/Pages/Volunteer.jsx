@@ -1,3 +1,4 @@
+import jsPDF from "jspdf";
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import Navbar from "../Components/Navbar";
@@ -5,6 +6,7 @@ import { client } from "../Config/supabase";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { IoMdArrowDropdown } from "react-icons/io";
+import { IoIosEye } from "react-icons/io";
 
 const Volunteer = () => {
   const [formData, setFormData] = useState({
@@ -24,6 +26,145 @@ const Volunteer = () => {
   const [user, setUser] = useState(null);
   const [editingId, setEditingId] = useState(null);
 
+  const handleView = (v) => {
+    let html = `
+    <div style="
+      background-color:#003b46;
+      color:white;
+      padding:20px;
+      border-radius:20px;
+      font-family: serif;
+      width:100%;
+      max-width:320px;
+      box-sizing:border-box;
+      overflow-x:hidden;
+    ">
+      ${v.image ? `<div style="display:flex; justify-content: center; align-items: center; margin-bottom:20px">
+        <img src="${v.image}" style="
+          width:120px;
+          height:120px;
+          border-radius:15%;
+          
+          box-shadow: 0px 0px 5px gray;
+        " />
+      </div>` : ''}
+
+      <div style="text-align:left; padding-left:10px; margin-bottom:15px;">
+        <p style="margin:5px 0;"><strong>Name:</strong> ${v.name}</p>
+        <p style="margin:5px 0;"><strong>Roll:</strong> ${v.roll || '-'}</p>
+        <p style="margin:5px 0;"><strong>Event:</strong> ${v.event}</p>
+        <p style="margin:5px 0;"><strong>Availability:</strong> ${v.availability}</p>
+      </div>
+
+      <div style="text-align:center; margin-top:10px;">
+        <button id="downloadPDFBtn" style="
+          background-color:#facc15;
+          color:#003b46;
+          padding:8px 16px;
+          border:none;
+          border-radius:8px;
+          font-weight:bold;
+          cursor:pointer;
+          transition:0.3s;
+        ">Download PDF</button>
+      </div>
+    </div>
+  `;
+
+    const swalInstance = themedAlert.fire({
+      title: 'Volunteer ID Card',
+      html: html,
+      showCloseButton: true,
+      showConfirmButton: false,
+      width: 350,
+      background: '#f0f0f0',
+      didOpen: () => {
+        const btn = document.getElementById('downloadPDFBtn');
+        btn.addEventListener('click', () => handleDownloadPDF(v));
+      }
+    });
+  };
+
+  function getRoundedImage(img, size = 110) {
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d");
+
+    // circle clip
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+
+    // draw image scaled
+    ctx.drawImage(img, 0, 0, size, size);
+    return canvas.toDataURL("image/png"); // returns base64 rounded image
+  }
+
+  const handleDownloadPDF = async (v) => {
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "pt",
+      format: [350, 420],
+    });
+
+    // Background
+    doc.setFillColor(0, 59, 70);
+    doc.rect(0, 0, 350, 420, "F");
+
+    let y = 40;
+
+    // ===== IMAGE =====
+    if (v.image) {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = v.image;
+
+      img.onload = async () => {
+        const roundedImg = getRoundedImage(img, 110);
+
+        // image shadow feel
+        doc.setFillColor(0, 0, 0, 0.2);
+        doc.roundedRect(120, y + 4, 110, 110, 18, 18, "F");
+
+        // image
+        doc.addImage(roundedImg, "PNG", 120, y, 110, 110);
+
+        y += 170;
+        drawCardText();
+        doc.save(`${v.name}_Volunteer_ID.pdf`);
+      };
+    } else {
+      y += 120;
+      drawCardText();
+      doc.save(`${v.name}_Volunteer_ID.pdf`);
+    }
+
+    // ===== TEXT CARD =====
+    function drawCardText() {
+
+      // ===== TITLE =====
+      doc.setFont("serif", "bold");
+      doc.setFontSize(15);
+      doc.setTextColor(255, 255, 255);
+
+      // 👇 image ke baad thora upar title
+      doc.text("Volunteer ID Card", 175, y, { align: "center" });
+
+      // ===== DETAILS =====
+      doc.setFontSize(12);
+      doc.setFont("serif", "normal");
+
+      const detailsStartY = y + 35; // 👈 yahan se details start hongi
+
+      doc.text(`Name: ${v.name}`, 40, detailsStartY);
+      doc.text(`Roll: ${v.roll || "-"}`, 40, detailsStartY + 30);
+      doc.text(`Event: ${v.event}`, 40, detailsStartY + 60);
+      doc.text(`Availability: ${v.availability}`, 40, detailsStartY + 90);
+    }
+
+  };
 
   useEffect(() => {
     const getUser = async () => {
@@ -81,7 +222,6 @@ const Volunteer = () => {
 
     return data.publicUrl;
   };
-
 
   // Submit or Update
   const handleSubmit = async () => {
@@ -308,7 +448,6 @@ const Volunteer = () => {
               />
             </div>
 
-
             <button
               type="button"
               onClick={handleSubmit}
@@ -334,6 +473,7 @@ const Volunteer = () => {
                   <th className="p-3 font-serif">Photo</th>
                   <th className="p-3 font-serif">Event</th>
                   <th className="p-3 font-serif">Availability</th>
+                  <th className="p-3 font-serif truncate">Roll No</th>
                   <th className="p-3 font-serif rounded-tr-xl">Action</th>
                 </tr>
               </thead>
@@ -351,19 +491,29 @@ const Volunteer = () => {
                     </td>
                     <td className="p-3">{v.event}</td>
                     <td className="p-3">{v.availability}</td>
-                    <td className="p-3 space-x-2 space-y-1">
+                    <td className="p-3 truncate">
+                      {v.roll}
+                    </td>
+                    <td className="p-3 truncate space-y-1">
                       <button
                         onClick={() => handleEdit(v)}
-                        className="bg-blue-500 text-white text-lg px-3 py-1 rounded-sm hover:bg-blue-600 transition"
+                        className="bg-blue-500 text-white text-lg px-3 py-1 rounded-s-sm hover:bg-blue-600 transition"
                       >
                         <FaEdit />
                       </button>
                       <button
                         onClick={() => handleDelete(v.id)}
-                        className="bg-red-500 text-white text-lg px-3 py-1 rounded-sm hover:bg-red-600 transition"
+                        className="bg-red-500 text-white text-lg px-3 py-1 hover:bg-red-600 transition"
                       >
-
                         <MdDelete />
+                      </button>
+
+                      {/* New buttons */}
+                      <button
+                        onClick={() => handleView(v)}
+                        className="bg-green-500 text-white text-lg px-3 py-1 rounded-e-sm hover:bg-green-600 transition"
+                      >
+                        <IoIosEye />
                       </button>
                     </td>
                   </tr>
@@ -372,7 +522,6 @@ const Volunteer = () => {
             </table>
           )}
         </div>
-
       </div>
     </>
   );
