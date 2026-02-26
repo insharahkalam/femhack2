@@ -4,18 +4,23 @@ import { client } from "../Config/supabase";
 import Navbar from "../Components/Navbar";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
+import { IoMdArrowDropdown } from "react-icons/io";
 const Complaints = () => {
-    const [formData, setFormData] = useState({ category: "", description: "" });
+    const [formData, setFormData] = useState({ category: "", description: "", campus: "" });
     const [loading, setLoading] = useState(false);
     const [user, setUser] = useState(null);
     const [myComplaints, setMyComplaints] = useState([]);
     const [editingId, setEditingId] = useState(null); // for editing
+    const [open, setOpen] = useState(false);
+    const [open2, setOpen2] = useState(false);
+
+    const campuses = ["Aliabad", "Gulshan", "Numaish", "Paposh", "Bahadurabad", "Zaitoon Ashraf"];
 
     const badgeColor = (status) => {
-        if (status === "Pending") return "bg-yellow-100 text-yellow-700";
-        if (status === "In Progress") return "bg-blue-100 text-blue-700";
-        if (status === "Resolved") return "bg-green-100 text-green-700";
-        return "bg-gray-100 text-gray-600";
+        if (status === "Pending") return "border border-yellow-800 text-yellow-700";
+        if (status === "In Progress") return "border border-blue-700 text-blue-700";
+        if (status === "Resolved") return "border border-green-800 text-green-700";
+        return "border border-gray-700 text-gray-600";
     };
 
     useEffect(() => {
@@ -74,6 +79,7 @@ const Complaints = () => {
                     .update({
                         category: formData.category,
                         description: formData.description,
+                        campus: formData.campus,
                     })
                     .eq("id", editingId);
 
@@ -92,7 +98,8 @@ const Complaints = () => {
                         user_id: user.id,
                         category: formData.category,
                         description: formData.description,
-                        status: "Pending",
+                        campus: formData.campus,
+                        status: "submitted",
                     },
                 ]);
 
@@ -105,7 +112,7 @@ const Complaints = () => {
                 });
             }
 
-            setFormData({ category: "", description: "" });
+            setFormData({ category: "", description: "", campus: "" });
             fetchMyComplaints(user.id);
         } catch (err) {
             themedAlert.fire({
@@ -120,7 +127,7 @@ const Complaints = () => {
 
     const handleEdit = (c) => {
         setEditingId(c.id);
-        setFormData({ category: c.category, description: c.description });
+        setFormData({ category: c.category, description: c.description, campus: c.campus });
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
@@ -159,7 +166,7 @@ const Complaints = () => {
 
     return (
         <>
-            <Navbar name="Complaints"  showBackToHome/>
+            <Navbar name="Complaints" showBackToHome />
             <div className="min-h-screen flex flex-col items-center justify-start bg-gray-50 p-5 lg:p-10 space-y-10">
 
                 {/* Submit/Edit Complaint Form */}
@@ -172,19 +179,76 @@ const Complaints = () => {
                     </p>
 
                     <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+
+
+                        {/* Category */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                            <select
-                                value={formData.category}
-                                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                className="w-full rounded-lg bg-gray-100 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#003b46]"
-                            >
-                                <option value="">Select Category</option>
-                                <option value="Cleaning">Cleaning</option>
-                                <option value="Maintenance">Maintenance</option>
-                                <option value="Security">Security</option>
-                                <option value="Other">Other</option>
-                            </select>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Category
+                            </label>
+
+                            <div className="relative">
+                                <button
+                                    type="button"
+                                    onClick={() => setOpen2(!open2)}
+                                    className="w-full rounded-xl bg-gray-100 px-4 py-3 text-sm flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#003b46]"
+                                >
+                                    {formData.category || "Select Category"}
+                                    <IoMdArrowDropdown className="text-gray-500 text-lg" />
+                                </button>
+
+                                {open2 && (
+                                    <div className="absolute z-20 mt-1 w-full rounded-xl bg-gray-100 shadow-lg overflow-hidden">
+                                        {["Cleaning", "Maintenance", "Security", "Other"].map(
+                                            (category) => (
+                                                <div
+                                                    key={category}
+                                                    onClick={() => {
+                                                        setFormData({ ...formData, category });
+                                                        setOpen2(false);
+                                                    }}
+                                                    className="px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-[#003b46]/10"
+                                                >
+                                                    {category}
+                                                </div>
+                                            )
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+
+
+                        {/* Campus */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Campus</label>
+                            <div className="relative">
+                                <button
+                                    type="button"
+                                    onClick={() => setOpen(!open)}
+                                    className="w-full rounded-xl bg-gray-100 px-4 py-3 text-sm flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#003b46]"
+                                >
+                                    {formData.campus || "Select campus"}
+                                    <IoMdArrowDropdown className="text-gray-500 text-lg" />
+                                </button>
+                                {open && (
+                                    <div className="absolute z-20 mt-1 w-full rounded-xl bg-gray-100 shadow-lg overflow-hidden">
+                                        {campuses.map((campus) => (
+                                            <div
+                                                key={campus}
+                                                onClick={() => {
+                                                    setFormData({ ...formData, campus });
+                                                    setOpen(false);
+                                                }}
+                                                className="px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-[#003b46]/10"
+                                            >
+                                                {campus}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         <div>
@@ -223,7 +287,7 @@ const Complaints = () => {
                                     <th className="p-3 font-serif">Category</th>
                                     <th className="p-3 font-serif">Description</th>
                                     <th className="p-3 font-serif">Status</th>
-                                    <th className="p-3 font-serif">Time</th>
+                                    <th className="p-3 font-serif">Campus</th>
                                     <th className="p-3 font-serif rounded-tr-xl">Action</th>
                                 </tr>
                             </thead>
@@ -232,26 +296,27 @@ const Complaints = () => {
                                 {myComplaints.map((c, index) => (
                                     <tr key={c.id} className="border-b border-gray-200 hover:bg-gray-100 transition">
                                         <td className="p-3">{index + 1}</td>
-                                        <td className="p-3">{c.category}</td>
-                                        <td className="p-3 font-medium">{c.description}</td>
+                                        <td className="p-3 text-gray-700">{c.category}</td>
+                                        <td className="p-3 text-gray-700">{c.description}</td>
                                         <td className="p-3">
-                                            <span className={`px-3 py-1 rounded-sm text-xs font-medium ${badgeColor(c.status)}`}>
+                                            <button className={`px-3 py-1 transition duration-500 hover:scale-105 rounded-sm text-xs cursor-pointer font-medium ${badgeColor(c.status)}`}>
                                                 {c.status}
-                                            </span>
+                                            </button>
                                         </td>
                                         <td className="p-3 text-gray-500 text-sm">
-                                            {new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
+                                            <button className="border px-3  py-0.5 transition duration-500 hover:scale-105 text-blue-500 rounded cursor-pointer ">
+                                                {c.campus}</button>
                                         </td>
                                         <td className="p-3 space-x-1 space-y-1">
                                             <button
                                                 onClick={() => handleEdit(c)}
-                                                className="bg-blue-500 text-white text-lg px-3 py-1 rounded-sm hover:bg-blue-600 transition"
+                                                className=" text-blue-500 text-lg px-2 py-1 duration-500 hover:scale-105 rounded-sm border border-blue-600 transition"
                                             >
                                                 <FaEdit />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(c.id)}
-                                                className="bg-red-500 text-white text-lg px-3 py-1 rounded-sm hover:bg-red-600 transition"
+                                                className=" border border-red-500 text-red-500 text-lg px-2 py-1 rounded-sm transition duration-500 hover:scale-105"
                                             >
                                                 <MdDelete />
                                             </button>
