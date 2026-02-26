@@ -9,10 +9,8 @@ const AllLostFoundItems = () => {
   const [search, setSearch] = useState("");
 
   const filteredItems = items.filter((i) =>
-  i.title.toLowerCase().includes(search.toLowerCase())
-);
-
-console.log(filteredItems);
+    i.title.toLowerCase().includes(search.toLowerCase())
+  );
 
   const fetchItems = async () => {
     const { data, error } = await client
@@ -50,19 +48,19 @@ console.log(filteredItems);
       }
     }
   };
-
   return (
     <>
       <Navbar name="Lost & Found Items" back inputt search={search} setSearch={setSearch} />
 
-      <div className="min-h-screen flex justify-center bg-gray-50 p-6">
-        <div className="overflow-x-auto w-full max-w-6xl bg-white  rounded-3xl shadow-lg shadow-[#003b46]">
+      <div className="min-h-screen flex justify-center bg-gray-50 py-5">
+
+        <div className="overflow-x-auto w-full  bg-white shadow-lg shadow-[#003b46]">
 
           {filteredItems.length === 0 ? (
             <p className="text-[#003b46] text-center font-bold text-3xl font-serif capitalize py-6">No items found  </p>
           ) : (
             <table className="w-full text-sm text-left border-collapse">
-              <thead className="bg-gray-100 text-[#003b46] uppercase text-sm font-serif">
+              <thead className="bg-gray-100 text-[#003b46] uppercase text-xs lg:text-sm font-serif">
                 <tr>
                   <th className="p-6">Id</th>
                   <th className="p-3">Title</th>
@@ -77,41 +75,41 @@ console.log(filteredItems);
                 {filteredItems.map((i, index) => (
                   <tr key={i.id} className="border-b border-gray-200 hover:bg-gray-50 transition duration-200">
                     <td className="p-6 font-bold text-gray-700">{index + 1}:</td>
-                    <td className="p-3 font-medium font-serif text-gray-700 capitalize">{i.title}</td>
+                    <td className="p-3 font-medium font-serif truncate text-[8px] lg:text-sm text-gray-700 capitalize">{i.title}</td>
 
                     <td className="py-3">
                       {i.image_url ? (
                         <img
                           src={i.image_url}
                           alt={i.title}
-                          className="w-16 h-16 object-cover rounded-xl shadow-lg"
+                          className="w-10 lg:w-16 lg:h-16 h-10 object-cover rounded-xl shadow-lg"
                         />
                       ) : (
                         <span className="text-gray-400  text-sm">No image</span>
                       )}
                     </td>
 
-                    <td className="p-3 max-w-xs font-serif text-gray-700 truncate">{i.description}</td>
+                    <td className="p-3 max-w-xs text-[8px] lg:text-sm font-serif text-gray-700 truncate">{i.description}</td>
 
-                    {/* Type Badge */}
+
                     <td className="py-3">
-                      <span className={`px-5 py-2.5 rounded-lg font-bold font-serif capitalize border ${i.type === "lost" ? "border-red-500 text-red-500 hover:bg-red-500 hover:text-white cursor-pointer transition duration-300" : "border-green-500 text-green-500 hover:bg-green-500 hover:text-white cursor-pointer transition duration-300"
+                      <span className={`px-2 lg:px-5 py-1.5 lg:py-2.5 rounded-sm lg:rounded-lg font-bold text-[8px] lg:text-sm  font-serif capitalize border ${i.type === "lost" ? "border-red-500 text-red-500 hover:bg-red-500 hover:text-white cursor-pointer transition duration-300" : "border-green-500 text-green-500 hover:bg-green-500 hover:text-white cursor-pointer transition duration-300"
                         }`}>
                         {i.type}
                       </span>
                     </td>
 
-                    {/* Campus Badge */}
+
                     <td className="py-3">
-                      <span className="px-5 py-2.5 rounded-lg border font-serif border-blue-500 text-blue-500 font-bold hover:bg-blue-500 hover:text-white cursor-pointer transition duration-300">
+                      <span className="px-2 lg:px-5 py-1.5 lg:py-2.5 rounded-sm lg:rounded-lg border text-[8px] lg:text-sm  font-serif border-blue-500 text-blue-500 font-bold hover:bg-blue-500 hover:text-white cursor-pointer transition duration-300">
                         {i.campus}
                       </span>
                     </td>
 
-                    {/* Action */}
-                    <td className="items-center pt-7 flex gap-2">
+
+                    <td className="items-center pt-6 lg:pt-7 flex gap-2">
                       <button
-                        className="bg-red-600 flex items-center gap-1 text-white px-4 py-2 hover:bg-red-700 rounded-lg transition"
+                        className="bg-red-600 flex items-center text-[8px] lg:text-sm font-serif font-bold gap-1 text-white  px-2 lg:px-4 py-1.5 lg:py-2.5 hover:bg-red-700 rounded-sm lg:rounded-lg transition"
                         onClick={() => handleDelete(i.id)}
                       >
                         <MdDelete /> Delete
@@ -124,6 +122,12 @@ console.log(filteredItems);
           )}
 
         </div>
+
+
+
+
+
+
       </div>
     </>
   );

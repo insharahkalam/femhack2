@@ -35,33 +35,34 @@ const Navbar = ({ showLost, showBackToHome, search, setSearch, back, inputt, nam
     return (
         <nav className="w-full bg-white px-6 py-3 border-b border-gray-200 flex items-center justify-between">
 
-            <h2 className="text-3xl font-serif font-bold text-[#003b46]">
+            <h2 className="text-xl truncate md:text-3xl font-serif font-bold text-[#003b46]">
                 {name}
             </h2>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1 lg:gap-2">
                 {showBackToHome && (
                     <Link to={'/home'}>
                         <button
 
-                            className="flex bg-[#003b46] text-white px-6 py-2.5 rounded-lg font-bold hover:bg-[#002a33] transition duration-500 hover:scale-105 items-center gap-2"
+                            className="flex bg-[#003b46] text-[8px] truncate md:text-lg text-white px-2 md:px-6 py-1.5 md:py-2.5 rounded md:rounded-lg font-bold hover:bg-[#002a33] transition duration-500 hover:scale-105 items-center gap-2"
                         >
                             <FaLongArrowAltLeft className="mt-0.5" />  Back To Home
                         </button></Link>
                 )}
 
                 <div className="flex items-center gap-4">
-                    {inputt && (
-                        <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search items by title..." className="border border-[#002a33] px-5 py-2.5 rounded-full w-100" />
-                    )}
+
+                    {inputt && (<input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search items by title..."
+                        className="border border-[#002a33] px-4 py-2.5 rounded-full w-full
+                                   sm:w-72 md:w-96 focus:outline-none focus:ring-2 focus:ring-[#003b46]"/>)}
 
                     {back && (
                         <Link to={'/lostFounud'}>
                             <button
 
-                                className="flex bg-[#003b46] text-white px-6 py-2.5 rounded-lg font-bold hover:bg-[#002a33] transition duration-500 hover:scale-105 items-center gap-2"
+                                className="flex bg-[#003b46] text-xs md:text-lg text-white px-2 md:px-6 py-1.5 md:py-2.5 rounded md:rounded-lg font-bold hover:bg-[#002a33] transition duration-500 hover:scale-105 items-center gap-1 md:gap-2"
                             >
-                                <FaLongArrowAltLeft className="mt-0.5" />  Back
+                                <FaLongArrowAltLeft className="lg:mt-0.5" />  Back
                             </button></Link>
                     )}
                 </div>
@@ -70,25 +71,22 @@ const Navbar = ({ showLost, showBackToHome, search, setSearch, back, inputt, nam
                     <Link to={'/LostFound'}>
                         <button
 
-                            className="flex bg-[#003b46] text-white px-6 py-2.5 rounded-lg font-bold hover:bg-[#002a33] transition duration-500 hover:scale-105 items-center gap-2"
+                            className="flex bg-[#003b46] text-[8px] truncate md:text-lg text-white px-2 md:px-6 py-1.5 md:py-2.5 rounded md:rounded-lg font-bold hover:bg-[#002a33] transition duration-500 hover:scale-105 items-center gap-2"
                         >
                             View Lost & Found
                         </button></Link>
                 )}
             </div>
 
-
             {showLogout && (
                 <button
                     onClick={() => { setOpen(false); handleLogout(); }}
-                    className=" text-white px-10 py-3 ms-3 rounded-lg font-bold font-serif  bg-[#002a33] transition duration-500 hover:scale-105 flex items-center gap-2"
+                    className=" text-white px-5 md:px-10 py-2 md:py-3 ms-3 rounded-lg font-bold font-serif  bg-[#002a33] transition duration-500 hover:scale-105 flex items-center gap-2"
                 >
                     Logout <LuLogOut className="mt-1" />
                 </button>
 
             )}
-
-
         </nav>
     );
 };
