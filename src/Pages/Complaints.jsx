@@ -274,8 +274,8 @@ const Complaints = () => {
                 </div>
 
                 {/* My Complaints Table */}
-                <div className="overflow-x-auto w-full p-6 bg-white rounded-3xl shadow-md shadow-[#003b46]">
-                    <h2 className="text-3xl font-serif font-bold text-[#003b46] mb-6">My Complaints</h2>
+                <div className="overflow-x-auto w-full bg-white rounded-3xl shadow-md shadow-[#003b46]">
+                    <h2 className="text-3xl font-serif font-bold  py-4 ps-6  text-[#003b46]">My Complaints</h2>
 
                     {myComplaints.length === 0 ? (
                         <p className="text-gray-500 text-lg">No complaints submitted yet.</p>
@@ -283,7 +283,7 @@ const Complaints = () => {
                         <table className="w-full text-sm text-left border-collapse">
                             <thead className="bg-gray-100 text-gray-600 uppercase text-xs sm:text-sm">
                                 <tr>
-                                    <th className="p-3 font-serif rounded-tl-xl">ID</th>
+                                    <th className="ps-8 font-serif rounded-tl-xl">ID</th>
                                     <th className="p-3 font-serif">Category</th>
                                     <th className="p-3 font-serif">Description</th>
                                     <th className="p-3 font-serif">Status</th>
@@ -295,16 +295,16 @@ const Complaints = () => {
                             <tbody className="bg-white">
                                 {myComplaints.map((c, index) => (
                                     <tr key={c.id} className="border-b border-gray-200 hover:bg-gray-100 transition">
-                                        <td className="p-3">{index + 1}</td>
-                                        <td className="p-3 text-gray-700">{c.category}</td>
-                                        <td className="p-3 text-gray-700">{c.description}</td>
-                                        <td className="p-3">
-                                            <button className={`px-3 py-1 transition duration-500 hover:scale-105 rounded-sm text-xs cursor-pointer font-medium ${badgeColor(c.status)}`}>
+                                        <td className="ps-8 font-medium text-gray-700">{index + 1}:</td>
+                                        <td className="p-3 text-gray-700 text-[10px] md:text-sm">{c.category}</td>
+                                        <td className="p-3 text-gray-700 text-[10px] md:text-sm">{c.description}</td>
+                                        <td className="p-3 text-[10px] md:text-sm">
+                                            <button className={`px-3 py-1 text-[10px] md:text-sm  truncate transition duration-500 hover:scale-105 rounded-sm text-xs cursor-pointer font-medium ${badgeColor(c.status)}`}>
                                                 {c.status}
                                             </button>
                                         </td>
                                         <td className="p-3 text-gray-500 text-sm">
-                                            <button className="border px-3  py-0.5 transition duration-500 hover:scale-105 text-blue-500 rounded cursor-pointer ">
+                                            <button className="border px-3  text-[10px] md:text-sm py-0.5 transition duration-500 hover:scale-105 text-blue-500 rounded cursor-pointer ">
                                                 {c.campus}</button>
                                         </td>
                                         <td className="p-3 space-x-1 space-y-1">

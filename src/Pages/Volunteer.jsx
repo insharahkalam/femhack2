@@ -4,17 +4,34 @@ import Navbar from "../Components/Navbar";
 import { client } from "../Config/supabase";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
+import { IoMdArrowDropdown } from "react-icons/io";
 
 const Volunteer = () => {
   const [formData, setFormData] = useState({
     name: "",
+    roll: "",
     event: "",
     availability: "",
+    image: null,
   });
+  const events = ["Hackathon", "Devathon", "Bootcamp", "Entry Test"];
+  const availability = ["1–2 hours", "3–5 hours", "5+ hours", "Flexible"];
+
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [open2, setOpen2] = useState(false);
   const [volunteers, setVolunteers] = useState([]);
+  const [user, setUser] = useState(null);
   const [editingId, setEditingId] = useState(null);
 
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data } = await client.auth.getUser();
+      setUser(data.user);
+    };
+    getUser();
+  }, []);
   const themedAlert = Swal.mixin({
     customClass: {
       popup: "swal2-popup",
@@ -27,17 +44,44 @@ const Volunteer = () => {
 
   // Fetch volunteers from Supabase
   const fetchVolunteers = async () => {
+    if (!user) return;
     const { data, error } = await client
       .from("volunteers")
       .select("*")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
     if (!error) setVolunteers(data);
   };
 
   useEffect(() => {
-    fetchVolunteers();
-  }, []);
+    if (user) fetchVolunteers();
+  }, [user]);
+
+  // img upload========
+
+  const uploadImage = async () => {
+    if (!formData.image) return null;
+
+    const fileExt = formData.image.name.split(".").pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+
+    const { error } = await client.storage
+      .from("volunteer-img")
+      .upload(fileName, formData.image);
+
+    if (error) {
+      console.error(error);
+      return null;
+    }
+
+    const { data } = client.storage
+      .from("volunteer-img")
+      .getPublicUrl(fileName);
+
+    return data.publicUrl;
+  };
+
 
   // Submit or Update
   const handleSubmit = async () => {
@@ -52,14 +96,20 @@ const Volunteer = () => {
     try {
       setLoading(true);
 
+      const imageUrl = await uploadImage();
+
+
       if (editingId) {
+
         // Update volunteer
         const { error } = await client
           .from("volunteers")
           .update({
             name: formData.name,
+            roll: formData.roll,
             event: formData.event,
             availability: formData.availability,
+            image: imageUrl,
           })
           .eq("id", editingId);
 
@@ -75,7 +125,7 @@ const Volunteer = () => {
         // Insert new volunteer
         const { error } = await client
           .from("volunteers")
-          .insert([formData]);
+          .insert([{ ...formData, user_id: user.id, image: imageUrl, }]);
 
         if (error) throw error;
 
@@ -86,7 +136,7 @@ const Volunteer = () => {
         });
       }
 
-      setFormData({ name: "", event: "", availability: "" });
+      setFormData({ name: "", event: "", availability: "", roll: "", image: null });
       fetchVolunteers();
     } catch (err) {
       themedAlert.fire({
@@ -104,6 +154,7 @@ const Volunteer = () => {
     setEditingId(v.id);
     setFormData({
       name: v.name,
+      roll: v.roll,
       event: v.event,
       availability: v.availability,
     });
@@ -159,38 +210,104 @@ const Volunteer = () => {
           </p>
 
           <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                <input
+                  type="text"
+                  placeholder="Enter your name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full rounded-lg bg-gray-100 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#003b46]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Roll Number</label>
+                <input
+                  type="text"
+                  placeholder="Enter your roll number"
+                  value={formData.roll}
+                  onChange={(e) => setFormData({ ...formData, roll: e.target.value })}
+                  className="w-full rounded-lg bg-gray-100 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#003b46]"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Event</label>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setOpen(!open)}
+                    className="w-full rounded-xl bg-gray-100 px-4 py-3 text-sm flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#003b46]"
+                  >
+                    {formData.event || "Select events"}
+                    <IoMdArrowDropdown className="text-gray-500 text-lg" />
+                  </button>
+                  {open && (
+                    <div className="absolute z-20 mt-1 w-full rounded-xl bg-gray-100 shadow-lg overflow-hidden">
+                      {events.map((event) => (
+                        <div
+                          key={event}
+                          onClick={() => {
+                            setFormData({ ...formData, event });
+                            setOpen(false);
+                          }}
+                          className="px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-[#003b46]/10"
+                        >
+                          {event}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Availability</label>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setOpen2(!open2)}
+                    className="w-full rounded-xl bg-gray-100 px-4 py-3 text-sm flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#003b46]"
+                  >
+                    {formData.availability || "Select Availability"}
+                    <IoMdArrowDropdown className="text-gray-500 text-lg" />
+                  </button>
+                  {open2 && (
+                    <div className="absolute z-20 mt-1 w-full rounded-xl bg-gray-100 shadow-lg overflow-hidden">
+                      {availability.map((availability) => (
+                        <div
+                          key={availability}
+                          onClick={() => {
+                            setFormData({ ...formData, availability });
+                            setOpen2(false);
+                          }}
+                          className="px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-[#003b46]/10"
+                        >
+                          {availability}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Upload picture</label>
               <input
-                type="text"
-                placeholder="Enter your name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  setFormData({ ...formData, image: e.target.files[0] })
+                }
                 className="w-full rounded-lg bg-gray-100 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#003b46]"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Event</label>
-              <input
-                type="text"
-                placeholder="Enter event name"
-                value={formData.event}
-                onChange={(e) => setFormData({ ...formData, event: e.target.value })}
-                className="w-full rounded-lg bg-gray-100 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#003b46]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Availability</label>
-              <input
-                type="text"
-                placeholder="e.g. Weekends / Full Day"
-                value={formData.availability}
-                onChange={(e) => setFormData({ ...formData, availability: e.target.value })}
-                className="w-full rounded-lg bg-gray-100 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#003b46]"
-              />
-            </div>
 
             <button
               type="button"
@@ -214,6 +331,7 @@ const Volunteer = () => {
                 <tr>
                   <th className="p-3 font-serif rounded-tl-xl">ID</th>
                   <th className="p-3 font-serif">Name</th>
+                  <th className="p-3 font-serif">Photo</th>
                   <th className="p-3 font-serif">Event</th>
                   <th className="p-3 font-serif">Availability</th>
                   <th className="p-3 font-serif rounded-tr-xl">Action</th>
@@ -224,6 +342,13 @@ const Volunteer = () => {
                   <tr key={v.id} className="border-b border-gray-200 hover:bg-gray-50 transition">
                     <td className="p-3">{index + 1}</td>
                     <td className="p-3 font-medium">{v.name}</td>
+                    <td className="p-3">
+                      {v.image ? (
+                        <img src={v.image} alt={v.name} className="w-12 h-12 rounded-full object-cover" />
+                      ) : (
+                        "No Image"
+                      )}
+                    </td>
                     <td className="p-3">{v.event}</td>
                     <td className="p-3">{v.availability}</td>
                     <td className="p-3 space-x-2 space-y-1">
