@@ -23,7 +23,43 @@ export default function Dashboard() {
     });
     const [loading, setLoading] = useState(true);
 
+
+    useEffect(() => {
+        const channel = client
+            .channel("complaints-channel")   // channel name
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",                  // INSERT | UPDATE | DELETE
+                    schema: "public",
+                    table: "complaints"
+                },
+                (payload) => {
+                    console.log("Realtime event:", payload);
+                    console.log(payload.eventType, payload.new, payload.old);
+                    if (payload.eventType === "UPDATE") {
+                        setComplaints(prev =>
+                            prev.map(c => c.id === payload.new.id ? payload.new : c)
+                        );
+                    }
+                    if (payload.eventType === "INSERT") {
+                        setComplaints(prev => [payload.new, ...prev]);
+                    }
+                    if (payload.eventType === "DELETE") {
+                        setComplaints(prev => prev.filter(c => c.id !== payload.old.id));
+                    }
+                }
+            )
+            .subscribe();
+
+        // Cleanup
+        return () => {
+            client.removeChannel(channel);
+        };
+    }, []); // empty deps → only on mount/unmount
+
     // ---------------- Fetch Data ----------------
+
     useEffect(() => {
         fetchComplaints();
     }, []);
