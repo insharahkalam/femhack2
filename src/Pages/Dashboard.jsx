@@ -23,20 +23,13 @@ export default function Dashboard() {
     });
     const [loading, setLoading] = useState(true);
 
-
     useEffect(() => {
-        const channel = client
-            .channel("complaints-channel")   // channel name
+        const channel = client.channel("public:complaints")
             .on(
                 "postgres_changes",
-                {
-                    event: "*",                  // INSERT | UPDATE | DELETE
-                    schema: "public",
-                    table: "complaints"
-                },
-                (payload) => {
-                    console.log("Realtime event:", payload);
-                    console.log(payload.eventType, payload.new, payload.old);
+                { event: "*", schema: "public", table: "complaints" },
+                payload => {
+                    console.log("Realtime:", payload);
                     if (payload.eventType === "UPDATE") {
                         setComplaints(prev =>
                             prev.map(c => c.id === payload.new.id ? payload.new : c)
@@ -52,11 +45,11 @@ export default function Dashboard() {
             )
             .subscribe();
 
-        // Cleanup
         return () => {
             client.removeChannel(channel);
         };
-    }, []); // empty deps → only on mount/unmount
+    }, []);
+
 
     // ---------------- Fetch Data ----------------
 
@@ -111,12 +104,16 @@ export default function Dashboard() {
                 .from("complaints")
                 .update({ status })
                 .eq("id", id);
-            fetchComplaints();
+
             toast.success(`Complaint status updated to "${status}"!`);
+
+            // Force refresh complaints if realtime not working
+            fetchComplaints();
         } catch {
             toast.error("Failed to update status");
         }
     };
+
 
     const handleDeleteVolunteer = async (id) => {
         const result = await Swal.fire({
