@@ -63,10 +63,10 @@ export default function Dashboard() {
     };
 
     const badgeColor = (status) => {
-        if (status === "Pending") return "bg-yellow-100 text-yellow-700";
-        if (status === "In Progress") return "bg-blue-100 text-blue-700";
-        if (status === "Resolved") return "bg-green-100 text-green-700";
-        return "bg-gray-100 text-gray-600";
+        if (status === "Pending") return "border border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-white transition duration-300";
+        if (status === "In Progress") return "border border-blue-300 text-blue-600 hover:bg-blue-500 hover:text-white transition duration-300";
+        if (status === "Resolved") return "border border-green-500 text-green-500 hover:bg-green-500 hover:text-white transition duration-300";
+        return "border border-gray-400 text-gray-700 hover:bg-gray-500 hover:text-white transition duration-300";
     };
 
     const updateStatus = async (id, status) => {
@@ -106,6 +106,30 @@ export default function Dashboard() {
         }
     };
 
+    const handleDeleteLost = async (id) => {
+        const result = await Swal.fire({
+            title: "Are you sure?",
+            text: "Do you really want to delete this list?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "Cancel",
+        });
+
+        if (result.isConfirmed) {
+            const { error } = await client.from("lost_found_items").delete().eq("id", id);
+
+            if (error) {
+                Swal.fire({ icon: "error", title: "Failed", text: error.message });
+            } else {
+                setLostFoundItems((prev) => prev.filter((l) => l.id !== id));
+                Swal.fire({ icon: "success", title: "Deleted!", text: "Volunteer has been deleted.", timer: 2000, showConfirmButton: false });
+            }
+        }
+    };
+
     // ---------------- Stats ----------------
     const getCount = async (table) => {
         const { count, error } = await client
@@ -134,7 +158,7 @@ export default function Dashboard() {
 
             <div className="flex flex-col flex-1 w-full">
                 <div>
-                    <Navbar name="Admin Dashboard"  showLogout/>
+                    <Navbar name="Admin Dashboard" showLogout />
 
                     {/* Stats Cards */}
                     <div className="p-4 sm:p-5 space-y-6">
@@ -183,6 +207,7 @@ export default function Dashboard() {
                                             <th className="p-3 font-serif">Category</th>
                                             <th className="p-3 font-serif">Description</th>
                                             <th className="p-3 font-serif">Status</th>
+                                            <th className="p-3 font-serif">Campus</th>
                                             <th className="p-3 font-serif rounded-tr-2xl">Action</th>
                                         </tr>
                                     </thead>
@@ -190,18 +215,22 @@ export default function Dashboard() {
                                         {complaints.map((c, index) => (
                                             <tr key={c.id} className="border-b border-gray-200 hover:bg-gray-100">
                                                 <td className="p-3 text-gray-600 font-medium">{index + 1}</td>
-                                                <td className="p-3 text-gray-600 font-medium">{c.category}</td>
-                                                <td className="p-3 text-gray-600 font-medium">{c.description}</td>
+                                                <td className="p-3 text-gray-600 text-[8px] md:text-sm font-serif font-medium">{c.category}</td>
+                                                <td className="p-3 text-gray-600 text-[8px] md:text-sm font-serif font-medium">{c.description}</td>
                                                 <td className="p-3">
-                                                    <span className={`px-3 py-1 rounded-sm text-[6px] xl:text-sm font-medium ${badgeColor(c.status)}`}>
+                                                    <span className={`px-2 lg:px-5 py-1 truncate lg:py-2.5 rounded-sm lg:rounded-lg border text-[8px] lg:text-sm font-serif font-bold ${badgeColor(c.status)}`}>
                                                         {c.status}
                                                     </span>
+                                                </td>
+                                                <td className="p-3 text-gray-600 font-medium">
+                                                    <button className="px-2 lg:px-5 py-1 truncate lg:py-2.5 rounded-sm lg:rounded-lg border text-[8px] lg:text-sm  font-serif border-blue-500 text-blue-500 font-bold hover:bg-blue-500 hover:text-white cursor-pointer transition duration-300">
+                                                        {c.campus}</button>
                                                 </td>
                                                 <td className="p-3">
                                                     <select
                                                         value={c.status}
                                                         onChange={(e) => updateStatus(c.id, e.target.value)}
-                                                        className="border text-[#003b46] font-medium border-gray-200 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#003b46]"
+                                                        className="border text-[6px] md:text-sm text-[#003b46] font-medium border-gray-200 rounded-sm px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#003b46]"
                                                     >
                                                         <option>Submitted</option>
                                                         <option>Pending</option>
@@ -223,7 +252,9 @@ export default function Dashboard() {
                                     <thead className="bg-gray-100 text-gray-600 uppercase text-xs sm:text-sm">
                                         <tr>
                                             <th className="p-3 font-serif rounded-tl-2xl">ID</th>
+                                            <th className="p-3 font-serif">Image</th>
                                             <th className="p-3 font-serif">Name</th>
+                                            <th className="p-3 font-serif truncate">Roll No</th>
                                             <th className="p-3 font-serif">Event</th>
                                             <th className="p-3 font-serif">Availability</th>
                                             <th className="p-3 font-serif rounded-tr-2xl">Action</th>
@@ -233,13 +264,17 @@ export default function Dashboard() {
                                         {volunteers.map((v, index) => (
                                             <tr key={v.id} className="border-b border-gray-100 hover:bg-gray-100 transition">
                                                 <td className="p-3">{index + 1}</td>
-                                                <td className="p-3 text-gray-600 font-medium">{v.name}</td>
-                                                <td className="p-3 text-gray-600 font-medium">{v.event}</td>
-                                                <td className="p-3 text-gray-600 font-medium">{v.availability}</td>
+                                                <td className="p-3 text-gray-600 font-medium">
+                                                    <img className="rounded-full shadow-sm md:w-14 w-10 lg:h-14 h-10" src={v.image} alt="" />
+                                                </td>
+                                                <td className="p-3 text-gray-600 text-[8px] md:text-sm font-medium">{v.name}</td>
+                                                <td className="p-3 text-gray-600 text-[8px] md:text-sm truncate font-medium">{v.roll}</td>
+                                                <td className="p-3 text-gray-600 text-[8px] md:text-sm font-medium">{v.event}</td>
+                                                <td className="p-3 text-gray-600 text-[8px] md:text-sm font-medium">{v.availability}</td>
                                                 <td className="p-3">
                                                     <button
                                                         onClick={() => handleDeleteVolunteer(v.id)}
-                                                        className="bg-red-500 font-bold text-white text-xs px-3 py-1 rounded-sm hover:bg-red-600 transition"
+                                                        className="px-2 lg:px-5 py-1 truncate lg:py-2.5 rounded-sm lg:rounded-lg border text-[8px] lg:text-sm  font-serif border-red-600 text-red-600 font-bold hover:bg-red-600 hover:text-white cursor-pointer transition duration-300"
                                                     >
                                                         Delete
                                                     </button>
@@ -261,6 +296,9 @@ export default function Dashboard() {
                                             <th className="p-3 font-serif">Image</th>
                                             <th className="p-3 font-serif">Title</th>
                                             <th className="p-3 font-serif">Description</th>
+                                            <th className="p-3 font-serif">Type</th>
+                                            <th className="p-3 font-serif">Capmus</th>
+                                            <th className="p-3 font-serif">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -269,11 +307,30 @@ export default function Dashboard() {
                                                 <td className="p-3">{index + 1}</td>
                                                 <td className="p-3">
                                                     {item.image_url ? (
-                                                        <img src={item.image_url} alt={item.title} className="w-16 h-16 object-cover rounded-xl" />
+                                                        <img src={item.image_url} alt={item.title} className="md:w-16 w-10 md:h-16 h-10 object-cover rounded-xl" />
                                                     ) : "-"}
                                                 </td>
-                                                <td className="p-3 font-semibold text-gray-600">{item.title}</td>
-                                                <td className="p-3 font-semibold text-gray-600">{item.description}</td>
+                                                <td className="p-3 font-semibold text-[8px] md:text-sm truncate text-gray-600">{item.title}</td>
+                                                <td className="p-3 font-semibold text-[8px] md:text-sm text-gray-600">{item.description}</td>
+                                                <td className="p-3 font-semibold text-gray-600">
+                                                    <span className={`px-2 lg:px-5 py-1 lg:py-2.5 rounded-sm lg:rounded-lg font-bold text-[8px] lg:text-sm  font-serif capitalize border ${item.type === "lost" ? "border-red-500 text-red-500 hover:bg-red-500 hover:text-white cursor-pointer transition duration-300" : "border-green-500 text-green-500 hover:bg-green-500 hover:text-white cursor-pointer transition duration-300"
+                                                        }`}>
+                                                        {item.type}
+                                                    </span>
+
+                                                </td>
+                                                <td className="p-3 font-semibold text-gray-600">
+                                                    <button className="px-2 lg:px-5 py-1 truncate lg:py-2.5 rounded-sm lg:rounded-lg border text-[8px] lg:text-sm  font-serif border-blue-500 text-blue-500 font-bold hover:bg-blue-500 hover:text-white cursor-pointer transition duration-300">
+                                                        {item.campus}</button>
+                                                </td>
+                                                <td className="p-3">
+                                                    <button
+                                                        onClick={() => handleDeleteLost(item.id)}
+                                                        className="px-2 lg:px-5 py-1 truncate lg:py-2.5 rounded-sm lg:rounded-lg border text-[8px] lg:text-sm  font-serif border-red-600 text-red-600 font-bold hover:bg-red-600 hover:text-white cursor-pointer transition duration-300"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
