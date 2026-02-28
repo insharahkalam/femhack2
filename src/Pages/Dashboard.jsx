@@ -14,6 +14,7 @@ export default function Dashboard() {
     const [activeTab, setActiveTab] = useState("complaints");
     const [volunteers, setVolunteers] = useState([]);
     const [complaints, setComplaints] = useState([]);
+    const [status, setStatus] = useState();
     const [lostFoundItems, setLostFoundItems] = useState([]);
     const [stats, setStats] = useState({
         users: 0,
@@ -23,39 +24,15 @@ export default function Dashboard() {
     });
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const channel = client.channel("public:complaints")
-            .on(
-                "postgres_changes",
-                { event: "*", schema: "public", table: "complaints" },
-                payload => {
-                    console.log("Realtime:", payload);
-                    if (payload.eventType === "UPDATE") {
-                        setComplaints(prev =>
-                            prev.map(c => c.id === payload.new.id ? payload.new : c)
-                        );
-                    }
-                    if (payload.eventType === "INSERT") {
-                        setComplaints(prev => [payload.new, ...prev]);
-                    }
-                    if (payload.eventType === "DELETE") {
-                        setComplaints(prev => prev.filter(c => c.id !== payload.old.id));
-                    }
-                }
-            )
-            .subscribe();
-
-        return () => {
-            client.removeChannel(channel);
-        };
-    }, []);
-
-
     // ---------------- Fetch Data ----------------
 
     useEffect(() => {
         fetchComplaints();
     }, []);
+
+
+
+
 
     useEffect(() => {
         const fetchVolunteers = async () => {
@@ -99,6 +76,8 @@ export default function Dashboard() {
     };
 
     const updateStatus = async (id, status) => {
+        console.log(status);
+
         try {
             await client
                 .from("complaints")
@@ -108,7 +87,7 @@ export default function Dashboard() {
             toast.success(`Complaint status updated to "${status}"!`);
 
             // Force refresh complaints if realtime not working
-            fetchComplaints();
+            // fetchComplaints();
         } catch {
             toast.error("Failed to update status");
         }
@@ -186,6 +165,32 @@ export default function Dashboard() {
         fetchStats();
     }, []);
 
+
+    useEffect(() => {
+        const channel = client
+            .channel("complaints-channel")
+            .on(
+                "postgres_changes",
+                { event: "*", schema: "public", table: "complaints" },
+                (payload) => {
+                    if (payload.eventType === "UPDATE") {
+
+                        setComplaints(prev => prev.map(item => item.id === payload.new.id ? payload.new : item))
+
+                    }
+                    // if (payload.eventType === "INSERT") {
+                    //     setComplaints(prev => [{ ...payload.new }, ...prev]);
+                    // }
+                    // if (payload.eventType === "DELETE") {
+                    //     setComplaints(prev => prev.filter(c => c.id !== Number(payload.old.id)));
+                    // }
+                }
+            )
+            .subscribe();
+
+        return () => channel.unsubscribe()
+    }, []);
+
     return (
         <div className="bg-white min-h-screen flex overflow-hidden">
 
@@ -261,13 +266,13 @@ export default function Dashboard() {
                                                 </td>
                                                 <td className="p-3">
                                                     <select
-                                                        value={c.status}
+                                                        value={status}
                                                         onChange={(e) => updateStatus(c.id, e.target.value)}
                                                         className="border text-[6px] md:text-sm text-[#003b46] font-medium border-gray-200 rounded-sm px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#003b46]"
                                                     >
                                                         <option>Submitted</option>
-                                                        <option>Pending</option>
-                                                        <option>In Progress</option>
+                                                        <option >Pending</option>
+                                                        <option >In Progress</option>
                                                         <option>Resolved</option>
                                                     </select>
                                                 </td>

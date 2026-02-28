@@ -24,6 +24,32 @@ const Complaints = () => {
     };
 
     useEffect(() => {
+        const channel = client
+            .channel("complaints-channel")
+            .on(
+                "postgres_changes",
+                { event: "*", schema: "public", table: "complaints" },
+                (payload) => {
+                    if (payload.eventType === "UPDATE") {
+
+                        setMyComplaints(prev => prev.map(item => item.id === payload.new.id ? payload.new : item))
+
+                    }
+                    // if (payload.eventType === "INSERT") {
+                    //     setComplaints(prev => [{ ...payload.new }, ...prev]);
+                    // }
+                    // if (payload.eventType === "DELETE") {
+                    //     setComplaints(prev => prev.filter(c => c.id !== Number(payload.old.id)));
+                    // }
+                }
+            )
+            .subscribe();
+
+        return () => channel.unsubscribe()
+    }, []);
+
+
+    useEffect(() => {
         const init = async () => {
             const { data } = await client.auth.getUser();
             if (!data?.user) return;
