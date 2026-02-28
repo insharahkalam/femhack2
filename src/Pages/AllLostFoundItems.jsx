@@ -1,53 +1,28 @@
 import { useEffect, useState } from "react";
 import { client } from "../Config/supabase";
 import Navbar from "../Components/Navbar";
-import { MdDelete } from "react-icons/md";
-import Swal from "sweetalert2";
 
 const AllLostFoundItems = () => {
+
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState("");
 
   const filteredItems = items.filter((i) =>
     i.title.toLowerCase().includes(search.toLowerCase())
   );
-
-  const fetchItems = async () => {
-    const { data, error } = await client
-      .from("lost_found_items")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (!error) setItems(data);
-  };
-
   useEffect(() => {
+    const fetchItems = async () => {
+      const { data, error } = await client
+        .from("lost_found_items")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (!error) setItems(data);
+    };
+
     fetchItems();
   }, []);
 
-  const handleDelete = async (id) => {
-    const result = await Swal.fire({
-      icon: "warning",
-      title: "Are you sure?",
-      text: "This will permanently delete the item!",
-      showCancelButton: true,
-      confirmButtonText: "Yes, delete it!",
-      cancelButtonText: "Cancel",
-    });
 
-    if (result.isConfirmed) {
-      const { error } = await client
-        .from("lost_found_items")
-        .delete()
-        .eq("id", id);
-
-      if (!error) {
-        Swal.fire("Deleted!", "Item has been deleted.", "success");
-        fetchItems();
-      } else {
-        Swal.fire("Error!", error.message, "error");
-      }
-    }
-  };
   return (
     <>
       <Navbar name="Lost & Found Items" back inputt search={search} setSearch={setSearch} />
@@ -68,7 +43,6 @@ const AllLostFoundItems = () => {
                   <th className="p-3">Description</th>
                   <th className="p-3">Type</th>
                   <th className="p-3">Campus</th>
-                  <th className="p-3">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -107,14 +81,7 @@ const AllLostFoundItems = () => {
                     </td>
 
 
-                    <td className="items-center pt-6 lg:pt-7 flex gap-2">
-                      <button
-                        className="bg-red-600 flex items-center text-[8px] lg:text-sm font-serif font-bold gap-1 text-white  px-2 lg:px-4 py-1.5 lg:py-2.5 hover:bg-red-700 rounded-sm lg:rounded-lg transition"
-                        onClick={() => handleDelete(i.id)}
-                      >
-                        <MdDelete /> Delete
-                      </button>
-                    </td>
+
                   </tr>
                 ))}
               </tbody>

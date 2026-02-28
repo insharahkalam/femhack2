@@ -14,7 +14,6 @@ export default function Dashboard() {
     const [activeTab, setActiveTab] = useState("complaints");
     const [volunteers, setVolunteers] = useState([]);
     const [complaints, setComplaints] = useState([]);
-    const [status, setStatus] = useState();
     const [lostFoundItems, setLostFoundItems] = useState([]);
     const [stats, setStats] = useState({
         users: 0,
@@ -27,11 +26,16 @@ export default function Dashboard() {
     // ---------------- Fetch Data ----------------
 
     useEffect(() => {
+        const fetchComplaints = async () => {
+            const { data, error } = await client
+                .from("complaints")
+                .select("*")
+                .order("created_at", { ascending: false });
+
+            if (!error) setComplaints(data);
+        };
         fetchComplaints();
     }, []);
-
-
-
 
 
     useEffect(() => {
@@ -59,15 +63,6 @@ export default function Dashboard() {
     }, []);
 
     // ---------------- Functions ----------------
-    const fetchComplaints = async () => {
-        const { data, error } = await client
-            .from("complaints")
-            .select("*")
-            .order("created_at", { ascending: false });
-
-        if (!error) setComplaints(data);
-    };
-
     const badgeColor = (status) => {
         if (status === "Pending") return "border border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-white transition duration-300";
         if (status === "In Progress") return "border border-blue-300 text-blue-600 hover:bg-blue-500 hover:text-white transition duration-300";
@@ -86,13 +81,32 @@ export default function Dashboard() {
 
             toast.success(`Complaint status updated to "${status}"!`);
 
-            // Force refresh complaints if realtime not working
-            // fetchComplaints();
         } catch {
             toast.error("Failed to update status");
         }
     };
 
+    const badgeColor2 = (status) => {
+        if (status === "Approved") return "border border-green-500 text-green-500 hover:bg-green-500 hover:text-white transition duration-300";
+        if (status === "Not Approved") return "border border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition duration-300";
+        return "border border-gray-400 text-gray-700 hover:bg-gray-500 hover:text-white transition duration-300";
+    };
+
+    const volUpdateStatus = async (id, volunStatus) => {
+        console.log(volunStatus);
+
+        try {
+            await client
+                .from("volunteers")
+                .update({ status: volunStatus })
+                .eq("id", id);
+
+            toast.success(`volunteer status updated to "${volunStatus}"!`);
+
+        } catch {
+            toast.error("Failed to update status");
+        }
+    };
 
     const handleDeleteVolunteer = async (id) => {
         const result = await Swal.fire({
@@ -165,6 +179,7 @@ export default function Dashboard() {
         fetchStats();
     }, []);
 
+    // ========Real time for complaint=======
 
     useEffect(() => {
         const channel = client
@@ -190,6 +205,33 @@ export default function Dashboard() {
 
         return () => channel.unsubscribe()
     }, []);
+
+    // =====Real time for volunteer =======
+    useEffect(() => {
+        const channel = client
+            .channel("volunteers-channel")
+            .on(
+                "postgres_changes",
+                { event: "*", schema: "public", table: "volunteers" },
+                (payload) => {
+                    if (payload.eventType === "UPDATE") {
+
+                        setVolunteers(prev => prev.map(item => item.id === payload.new.id ? payload.new : item))
+
+                    }
+                    // if (payload.eventType === "INSERT") {
+                    //     setComplaints(prev => [{ ...payload.new }, ...prev]);
+                    // }
+                    // if (payload.eventType === "DELETE") {
+                    //     setComplaints(prev => prev.filter(c => c.id !== Number(payload.old.id)));
+                    // }
+                }
+            )
+            .subscribe();
+
+        return () => channel.unsubscribe()
+    }, []);
+
 
     return (
         <div className="bg-white min-h-screen flex overflow-hidden">
@@ -266,7 +308,7 @@ export default function Dashboard() {
                                                 </td>
                                                 <td className="p-3">
                                                     <select
-                                                        value={status}
+                                                        value={c.status}
                                                         onChange={(e) => updateStatus(c.id, e.target.value)}
                                                         className="border text-[6px] md:text-sm text-[#003b46] font-medium border-gray-200 rounded-sm px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#003b46]"
                                                     >
@@ -295,6 +337,7 @@ export default function Dashboard() {
                                             <th className="p-3 font-serif truncate">Roll No</th>
                                             <th className="p-3 font-serif">Event</th>
                                             <th className="p-3 font-serif">Availability</th>
+                                            <th className="p-3 font-serif">Status</th>
                                             <th className="p-3 font-serif rounded-tr-2xl">Action</th>
                                         </tr>
                                     </thead>
@@ -309,7 +352,21 @@ export default function Dashboard() {
                                                 <td className="p-3 text-gray-600 text-[8px] md:text-sm truncate font-medium">{v.roll}</td>
                                                 <td className="p-3 text-gray-600 text-[8px] md:text-sm font-medium">{v.event}</td>
                                                 <td className="p-3 text-gray-600 text-[8px] md:text-sm font-medium">{v.availability}</td>
-                                                <td className="p-3">
+                                                <td className="p-3 text-gray-600 text-[8px] md:text-sm font-medium">
+                                                    <span className={`px-2 lg:px-5 py-1 truncate lg:py-2.5 rounded-sm lg:rounded-lg border text-[8px] lg:text-sm font-serif font-bold ${badgeColor2(v.status)}`}>
+                                                        {v.status}
+                                                    </span>
+                                                </td>
+                                                <td className="pt-5 text-gray-600 text-[8px] md:text-sm font-medium justify-center flex items-center gap-2">
+                                                    <select
+                                                        value={v.status}
+                                                        onChange={(e) => volUpdateStatus(v.id, e.target.value)}
+                                                        className="border text-[6px] lg:py-2.5 md:text-sm text-[#003b46] font-medium border-gray-200 rounded-sm lg:rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#003b46]"
+                                                    >
+                                                        <option>Submitted</option>
+                                                        <option >Approved</option>
+                                                        <option >Not Approved</option>
+                                                    </select>
                                                     <button
                                                         onClick={() => handleDeleteVolunteer(v.id)}
                                                         className="px-2 lg:px-5 py-1 truncate lg:py-2.5 rounded-sm lg:rounded-lg border text-[8px] lg:text-sm  font-serif border-red-600 text-red-600 font-bold hover:bg-red-600 hover:text-white cursor-pointer transition duration-300"
@@ -317,6 +374,9 @@ export default function Dashboard() {
                                                         Delete
                                                     </button>
                                                 </td>
+
+
+
                                             </tr>
                                         ))}
                                     </tbody>

@@ -265,7 +265,7 @@ const Volunteer = () => {
         // Insert new volunteer
         const { error } = await client
           .from("volunteers")
-          .insert([{ ...formData, user_id: user.id, image: imageUrl, }]);
+          .insert([{ ...formData, user_id: user.id, image: imageUrl, status: "submitted" }]);
 
         if (error) throw error;
 
@@ -288,6 +288,39 @@ const Volunteer = () => {
       setLoading(false);
     }
   };
+
+  const badgeColor2 = (status) => {
+    if (status === "Approved") return "border border-green-500 text-green-500 hover:bg-green-500 hover:text-white transition duration-300";
+    if (status === "Not Approved") return "border border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition duration-300";
+    return "border border-gray-400 text-gray-700 hover:bg-gray-500 hover:text-white transition duration-300";
+  };
+
+  // =====Real time for volunteer =======
+  useEffect(() => {
+    const channel = client
+      .channel("volunteers-channel")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "volunteers" },
+        (payload) => {
+          if (payload.eventType === "UPDATE") {
+
+            setVolunteers(prev => prev.map(item => item.id === payload.new.id ? payload.new : item))
+
+          }
+          // if (payload.eventType === "INSERT") {
+          //     setComplaints(prev => [{ ...payload.new }, ...prev]);
+          // }
+          // if (payload.eventType === "DELETE") {
+          //     setComplaints(prev => prev.filter(c => c.id !== Number(payload.old.id)));
+          // }
+        }
+      )
+      .subscribe();
+
+    return () => channel.unsubscribe()
+  }, []);
+  
 
   // Edit volunteer
   const handleEdit = (v) => {
@@ -474,6 +507,7 @@ const Volunteer = () => {
                   <th className="p-3 font-serif">Event</th>
                   <th className="p-3 font-serif">Availability</th>
                   <th className="p-3 font-serif truncate">Roll No</th>
+                  <th className="p-3 font-serif truncate">Status</th>
                   <th className="p-3 font-serif rounded-tr-xl">Action</th>
                 </tr>
               </thead>
@@ -491,8 +525,11 @@ const Volunteer = () => {
                     </td>
                     <td className="p-3">{v.event}</td>
                     <td className="p-3">{v.availability}</td>
-                    <td className="p-3 truncate">
-                      {v.roll}
+                    <td className="p-3 truncate">{v.roll}</td>
+                    <td className="p-3 text-[10px] md:text-sm">
+                      <button className={`px-3 py-1 text-[10px] md:text-sm  truncate transition duration-500 hover:scale-105 rounded-sm text-xs cursor-pointer font-medium ${badgeColor2(v.status)}`}>
+                        {v.status}
+                      </button>
                     </td>
                     <td className="p-3 truncate space-y-1">
                       <button
