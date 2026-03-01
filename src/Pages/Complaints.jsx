@@ -304,7 +304,7 @@ const Complaints = () => {
                     <h2 className="text-3xl font-serif font-bold  py-4 ps-6  text-[#003b46]">My Complaints</h2>
 
                     {myComplaints.length === 0 ? (
-                        <p className="text-gray-500 text-lg">No complaints submitted yet.</p>
+                        <p className="text-gray-500 pb-4 ps-6  text-lg">No complaints submitted yet.</p>
                     ) : (
                         <table className="w-full text-sm text-left border-collapse">
                             <thead className="bg-gray-100 text-gray-600 uppercase text-xs sm:text-sm">

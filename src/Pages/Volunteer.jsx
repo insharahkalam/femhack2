@@ -493,7 +493,7 @@ const Volunteer = () => {
         </div>
 
         {/* Volunteers Table */}
-        <div className="overflow-x-auto mb-10 w-full max-w-4xl p-6 bg-white rounded-3xl shadow-md shadow-[#003b46]">
+        <div className="overflow-x-auto mb-10 w-full max-w-6xl p-6 bg-white rounded-3xl shadow-md shadow-[#003b46]">
           <h2 className="text-3xl font-serif font-bold text-[#003b46] mb-6">Volunteers</h2>
           {volunteers.length === 0 ? (
             <p className="text-gray-500 text-lg">No volunteers registered yet.</p>
